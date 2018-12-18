@@ -1,0 +1,370 @@
+{% extends 'article/base.html' %}
+
+{% block title %}
+<title>{{ post.title }} - HOLA</title>
+{% endblock %}
+
+{% block main %}
+  <div class="col-sm-12 col-12 col-md-9">
+
+    <div class="container bgc px-0">
+      <ol class="breadcrumb breadcrumb-custom mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'cate_list' post.category.short_name %}">{{ post.category }}</a></li>
+        <li class="breadcrumb-item active breadcrumb-item-custom">{{ post.title }}</li>
+      </ol>
+
+      <div class="custom-wrap">
+        <h1 class="h3 mb-3">{{ post.title }}</h1>
+        <div class="meta-text">
+          <i class="iconfont icon-riqi"></i>
+          <span>{{ post.modified_time }}</span>
+          <i class="iconfont icon-fenlei2 ml-3"></i>
+          <span><a href="{% url 'cate_list' post.category.short_name %}">{{ post.category }}</a></span>
+          {% if post.tag.all %}
+            <i class="iconfont icon-tag ml-3"></i>
+          {% endif %}
+          <span>
+          {% for tag in post.tag.all %}
+            <a href="{% url 'tag_list' tag.name %}">{{ tag.name }}</a>
+          {% endfor %}
+          </span>
+          <i class="iconfont icon-read ml-3"></i>
+          <span>{{ post.views }}</span>
+
+        </div>
+        <div class="content-body">
+          <div class="content-info p-3 mt-4">
+            {{ post.excerpt }}
+          </div>
+          <div class="content mt-5">
+            {{ post.content | safe }}
+          </div>
+        </div>
+
+        {% if post.downloadable %}
+        <div class="card border-light mt-5 d-md-none d-lg-none d-xl-none">
+          <div class="card-header text-center h5">下载信息</div>
+          <div class="card-body">
+            <p class="card-text mb-1">
+              类别：<a href="{% url 'cate_list' post.category.short_name %}">{{ post.category.name }}</a>
+            </p>
+            <p class="card-text mb-1">
+              官网：{% if post.official_website %}<a href="{{ post.official_website }}" target="_blank">访问</a>{% else %}-{% endif %}
+            </p>
+            <p class="card-text mb-1">
+              更新时间：{{ post.modified_time | date:"Y-m-d" }}
+            </p>
+            <p class="card-text mb-1">
+              应用大小：{{ post.app_size }} {{ post.get_size_unit_display }}
+            </p>
+            <p class="card-text mb-2">
+              系统要求：{% for item in post.system_requirement.all %}{{ item.name }} {% endfor %}
+            </p>
+            <p class="card-text h5 download-btn">
+              <a class="btn btn-lg btn-primary btn-block" href="#" data-toggle="modal" data-target="#downloadDialog">下载应用</a>
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="donate d-flex justify-content-center mt-4">
+          <button id="likeBtn" class="btn btn-lg btn-outline-success rounded" ><i class="iconfont icon-dianzan mr-1"></i>点赞 <span id="likeNum">{{ post.likes }}</span></button>
+          <button
+                  class="btn btn-lg btn-outline-success rounded ml-1"
+                  data-placement="top"
+                  data-html="true"
+                  data-toggle="popover"
+                  data-trigger="hover"
+                  data-content='<img width="100%" src="{{ MEDIA_URL }}qrcode.png">'
+          >
+              <i class="iconfont icon-dashang mr-1"></i>打赏
+          </button>
+        </div>
+
+      </div>
+
+    {% if post.get_tag_posts %}
+      <div class="recommend custom-wrap">
+        <h5 class="mb-4">相关推荐</h5>
+        <div class="row">
+        {% for rpost in post.get_tag_posts %}
+          <div class="col-md-4 pr-0 mb-3">
+              <a href="{% url 'detail' rpost.short_title %}">
+                <img height="150px" class="w-100" src="{{ MEDIA_URL }}{{ rpost.image }}" alt="">
+              </a>
+            <p class="my-2 p-0"><a class="custom-link" href="{% url 'detail' rpost.short_title %}">{{ rpost.title }}</a></p>
+          </div>
+        {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+      <div id="comment-list" class="comments custom-wrap pt-0">
+        <h5>评论列表（{{ post.comments_set.all.count }}）</h5>
+        <ul id="real-comment-list" class="comments-list">
+
+        {% for comment in comment_list.object_list %}
+          <li class="comments-list-item">
+            <div class="row mb-2">
+              <div class="col-1">
+                <img class="comments-img rounded-circle" src="{{ MEDIA_URL }}user_default.jpg" alt="">
+              </div>
+              <div class="col-11 d-flex align-items-start flex-column">
+                <h6><a id="comment-{{ comment.id }}" href="#contentInvalid" data-text="{{ comment.id }}">{{ comment.author }}</a><small class="item-small ml-3">{{ comment.created_time }}</small></h6>
+                <div class="comments-body mb-auto">
+                    {{ comment.content }}{% if comment.reply_to %} // <a href="#contentInvalid" data-text="{{ comment.reply_to.id }}">@{{ comment.reply_to.author }}</a> {{ comment.reply_to.content }}{% endif %}
+                </div>
+                <p class="mb-1 mt-2"><a href="#contentInvalid" data-text="{{ comment.id }}">回复</a></p>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+
+        </ul>
+          <div class="d-flex justify-content-center mt-3">
+            <ul class="pagination pagination-sm">
+          {% if comment_list.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{{ comment_list.previous_page_number.querystring }}#comment-list">&laquo;</a>
+            </li>
+          {% endif %}
+          {% for page in comment_list.pages %}
+              {% if page %}
+                  {% ifequal page comment_list.number %}
+                    <li class="page-item active">
+                      <span class="page-link">{{ page }}</span>
+                    </li>
+                  {% else %}
+                    <li class="page-item">
+                      <a class="page-link" href="?{{ page.querystring }}#comment-list">{{ page }}</a>
+                    </li>
+                  {% endifequal %}
+              {% else %}
+
+              {% endif %}
+          {% endfor %}
+          {% if comment_list.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{{ comment_list.next_page_number.querystring }}#comment-list">&raquo;</a>
+            </li>
+          {% endif %}
+      </ul>
+
+          </div>
+
+        <h5 class="mb-4">发表评论</h5>
+        <form id="commentForm">
+            <input id="commentID" type="hidden" value="0">
+          <div class="form-group">
+            <textarea id="contentInvalid" name="content" class="form-control rounded-0" rows="7" required placeholder="你想说点什么..."></textarea>
+            <div id="contentInvalidText" class="invalid-feedback"></div>
+          </div>
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text rounded-0" id="basic-addon1"><i class="iconfont icon-user"></i></span>
+            </div>
+            <input id="authorInvalid" name="author" type="text" class="form-control rounded-0 mw-100" required placeholder="你的大名(*)">
+            <div id="authorInvalidText" class="invalid-feedback"></div>
+          </div>
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text rounded-0" id="basic-addon1"><i class="iconfont icon-email"></i></span>
+            </div>
+            <input id="emailInvalid" name="email" type="email" class="form-control d-block rounded-0" placeholder="你的邮箱">
+            <div id="emailInvalidText" class="invalid-feedback"></div>
+          </div>
+          <button id="commentSubmit" type="button" class="btn btn-primary btn-block">提交</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block sidebar %}
+  <div class="col-md-3 sidebar-wrap d-none d-md-block d-lg-block d-xl-block">
+    {% block hot_post %}{{ block.super }}{% endblock %}
+
+    {% if post.downloadable %}
+    <div class="card border-light mb-3 sticky-top download">
+      <ol class="breadcrumb breadcrumb-custom">
+        <li class="breadcrumb-item">下载信息</li>
+      </ol>
+      <div class="card-body pt-0">
+        <p class="card-text card-text-custom mb-1">
+          类别：<a href="{% url 'cate_list' post.category.short_name %}">{{ post.category.name }}</a>
+        </p>
+        <p class="card-text card-text-custom mb-1">
+          官网：{% if post.official_website %}<a href="{{ post.official_website }}" target="_blank">访问</a>{% else %}-{% endif %}
+        </p>
+        <p class="card-text card-text-custom mb-1">
+          应用大小：{{ post.app_size }} {{ post.get_size_unit_display }}
+        </p><p class="card-text card-text-custom mb-1">
+          应用版本：{{ post.app_version }}
+        </p>
+        <p class="card-text card-text-custom mb-1">
+          系统要求：{% for item in post.system_requirement.all %}{{ item.name }} {% endfor %}
+        </p>
+        <p class="card-text card-text-custom">
+          更新时间：{{ post.modified_time | date:"Y-m-d" }}
+        </p>
+        <button type="button" class="btn btn-primary btn-lg btn-block" data-toggle="modal" data-target="#downloadDialog">下载应用</button>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+{% endblock %}
+
+{% block modal %}
+<!-- Modal -->
+<div class="modal fade" id="downloadDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">文件信息</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="card-text-custom mb-1">
+          应用大小：{{ post.app_size }} {{ post.get_size_unit_display }}
+        </p>
+        <p class="card-text-custom mb-1">
+          应用版本：{{ post.app_version }}
+        </p>
+        <p class="card-text-custom mb-1">
+          系统要求：{% for item in post.system_requirement.all %}{{ item.name }} {% endfor %}
+        </p>
+        <p class="card-text-custom mb-1">
+          更新时间：{{ post.modified_time | date:"Y-m-d" }}
+        </p>
+        {% if post.baidu_password %}
+        <p class="card-text-custom">
+          网盘密码：{{ post.baidu_password }}
+        </p>
+        {% endif %}
+        <hr>
+        {% if post.official_download %}
+        <a href="{{ post.official_download }}" target="_blank" class="btn btn-success">官方下载</a>
+        {% endif %}
+        {% if post.baidu_download %}
+        <a href="{{ post.baidu_download }}" target="_blank" class="btn btn-success">百度网盘</a>
+        {% endif %}
+        {% if post.others_download_1 %}
+        <a href="{{ post.others_download_1 }}" target="_blank" class="btn btn-success">其他下载1</a>
+        {% endif %}
+        {% if post.others_download_2 %}
+        <a href="{{ post.others_download_2 }}" target="_blank" class="btn btn-success">其他下载2</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+$("#likeBtn").on("click", function () {
+    $.ajax({
+        type: "POST",
+        url: "{% url 'detail' post.short_title %}",
+        dataType: "json",
+        data: {"short_title": "{{ post.short_title }}"},
+        beforeSend: function(xhr, settings){
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        },
+        success: function (data) {
+            if (data.status) {
+                // alert(data.msg);
+                $(this).addClass("btn-success").removeClass("btn-outline-success");
+                $("#likeNum").text(data.msg);
+            } else {
+                console.log(data.msg);
+            }
+        }.bind(this),
+        error: function (jqXHR) {
+            console.log(jqXHR.status);
+        }
+    })
+});
+</script>
+
+<script>
+$("#commentSubmit").on("click", function () {
+    $.ajax({
+        type: "POST",
+        url: "{% url 'comment' %}",
+        dataType: 'json',
+        data: {
+            "post_id": "{{ post.id }}",
+            "comment_id": $("#commentID").val(),
+            "content": $('[name=content]').val(),
+            "author": $('[name=author]').val(),
+            "email": $('[name=email]').val(),
+        },
+        beforeSend: function(xhr, settings){
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        },
+        success: function (data) {
+            if (data.status) {
+                $("#commentForm").each(function () {
+                    this.reset();
+                });
+                window.location.reload();
+                //alert(data.msg)
+            } else {
+                //console.log(data.msg);
+                console.log(data.error);
+                if (data.error.content) {
+                    $("#contentInvalid").addClass("is-invalid");
+                    $("#contentInvalidText").text(data.error.content[0]);
+                }
+                if (data.error.author) {
+                    $("#authorInvalid").addClass("is-invalid");
+                    $("#authorInvalidText").text(data.error.author[0]);
+                }
+                if (data.error.email) {
+                    $("#emailInvalid").addClass("is-invalid");
+                    $("#emailInvalidText").text(data.error.email[0]);
+                }
+            }
+        }
+    })
+});
+
+$("#contentInvalid").on("click", function () {
+    $(this).removeClass("is-invalid");
+    $("#contentInvalidText").text('')
+});
+
+$("#authorInvalid").on("click", function () {
+    $(this).removeClass("is-invalid");
+    $("#authorInvalidText").text('')
+});
+
+$("#emailInvalid").on("click", function () {
+    $(this).removeClass("is-invalid");
+    $("#emailInvalidText").text('')
+});
+
+$(function(){
+    // Enables popover
+    $("[data-toggle=popover]").popover();
+});
+</script>
+
+<script>
+$('[href="#contentInvalid"]').on("click", function () {
+    let cid = $(this).attr("data-text");
+    $("#commentID").val(cid);
+    const addUser = "@" + $("#comment-" + cid).text() + "\n";
+    $("#contentInvalid").val(addUser);
+    console.log(cid);
+    //console.log($("#commentID").val())
+})
+</script>
+
+{% endblock %}

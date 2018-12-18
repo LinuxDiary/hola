@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  {% block title %}
+  <title>首页</title>
+  {% endblock %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap_flatly.min.css' %}">
+  <link rel="stylesheet" href="http://at.alicdn.com/t/font_935674_rfzcxnddn6h.css">
+  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/code.css' %}">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'index' %}">HOLA</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item{% if current_page == 'index' %} active{% endif %}">
+            <a class="nav-link" href="{% url 'index' %}">首页<span class="sr-only">(current)</span></a>
+          </li>
+            {% for cate in categories %}
+                {% if cate.child.all %}
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript: void(0);" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {{ cate.name }}
+                    </a>
+                    <div class="dropdown-menu rounded-0" aria-labelledby="navbarDropdown">
+                    {% for child_cate in cate.child.all %}
+                      <a class="dropdown-item" href="{% url 'cate_list' child_cate.short_name %}">{{ child_cate.name }}</a>
+                    {% endfor %}
+                    </div>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'cate_list' cate.short_name %}">{{ cate.name }}</a>
+                  </li>
+                {% endif %}
+            {% endfor %}
+
+        </ul>
+        <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'search' %}">
+          <input class="form-control mr-sm-2" type="text" placeholder="搜一下看看..." name="q" required>
+          <button class="btn btn-success my-2 my-sm-0 btn-search" type="submit">搜索</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-3">
+    <div class="row">
+      {% block main %}
+      {% endblock %}
+
+      {% block sidebar %}
+      <div class="col-md-3 sidebar-wrap">
+        {% block hot_post %}
+        <div class="card border-light mb-3">
+          <ol class="breadcrumb breadcrumb-custom mb-0">
+            <li class="breadcrumb-item breadcrumb-item-custom">热门文章</li>
+          </ol>
+          <div class="card-body card-body-custom">
+            <ul class="list-group list-group-flush">
+                {% for hpost in hot_posts %}
+              <li class="list-group-item">
+                <a class="item-title" href="{% url 'detail' hpost.short_title %}">{{ hpost.title }}</a>
+                <small class="d-block mt-1 item-small">
+                  <i class="iconfont icon-huo mr-1"></i>
+                <span>{{ hpost.views }}</span>
+              </small>
+              </li>
+                {% endfor %}
+                <!--
+              <li class="list-group-item">
+                <a class="item-title" href="#">小米本周美国路演，有香港投资者称估值应为200亿美元</a>
+                <small class="d-block mt-1 item-small">
+                  <i class="iconfont icon-huo mr-1"></i>
+                <span>36357</span>
+              </small>
+              </li>
+              <li class="list-group-item">
+                <a class="item-title" href="#">小米本周美国路演，有香港投资者称估值应为200亿美元</a>
+                <small class="d-block mt-1 item-small">
+                  <i class="iconfont icon-huo mr-1"></i>
+                <span>36357</span>
+              </small>
+              </li>
+              <li class="list-group-item">
+                <a class="item-title" href="#">小米本周美国路演，有香港投资者称估值应为200亿美元</a>
+                <small class="d-block mt-1 item-small">
+                  <i class="iconfont icon-huo mr-1"></i>
+                <span>36357</span>
+              </small>
+              </li>
+              <li class="list-group-item">
+                <a class="item-title" href="#">小米本周美国路演，有香港投资者称估值应为200亿美元</a>
+                <small class="d-block mt-1 item-small">
+                  <i class="iconfont icon-huo mr-1"></i>
+                <span>36357</span>
+              </small>
+              </li>
+              -->
+            </ul>
+          </div>
+    </div>
+        {% endblock %}
+
+        {% block hot_tag %}
+        <div class="card border-light mb-3">
+          <ol class="breadcrumb breadcrumb-custom mb-0">
+            <li class="breadcrumb-item breadcrumb-item-custom">标签聚合</li>
+          </ol>
+          <div class="card-body card-body-custom py-2">
+          {% for tag in all_tags %}
+            <a href="{% url 'tag_list' tag.name %}" class="btn btn-sm btn-outline-secondary rounded my-1 mr-1">{{ tag.name }}</a>
+          {% endfor %}
+          </div>
+        </div>
+        {% endblock %}
+
+      </div>
+      {% endblock %}
+    </div>
+  </div>
+
+  <div class="footer mt-3 mb-0 py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+            <!--
+          <div class="footer-nav">
+            <a class="mr-3" href="#">联系我们</a>
+            <a class="mr-3" href="#">行业动态</a>
+            <a class="mr-3" href="#">专题列表</a>
+            <a class="mr-3" href="#">用户列表</a>
+          </div>
+          -->
+          <span class="d-block">
+            Copyright © 2018 HOLA
+          </span>
+          <span class="d-block">
+              基于 <a href="https://getbootstrap.com/" target="_blank">Bootstrap 4</a> 和 <a href="https://www.djangoproject.com/" target="_blank">Django 2</a> 构建
+          </span>
+        </div>
+        <div class="col-md-4"></div>
+      </div>
+    </div>
+  </div>
+
+  {% block modal %}
+  {% endblock %}
+<script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+{% block custom_js %}
+{% endblock %}
+</body>
+</html>

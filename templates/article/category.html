@@ -1,0 +1,105 @@
+{% extends 'article/base.html' %}
+
+{% block title %}
+<title>{% if keyword.name %}{{ keyword.name }}{% else %}{{ keyword }} 的搜索结果{% endif %} - HOLA</title>
+{% endblock %}
+
+{% block main %}
+  <div class="col-md-9">
+
+      <ol class="breadcrumb breadcrumb-custom mb-0">
+          {% if keyword.name %}
+          <li class="breadcrumb-item"><a href="{% url 'index' %}">首页</a></li>
+          <li class="breadcrumb-item active breadcrumb-item-custom">{{ keyword.name }}</li>
+          {% else %}
+          <li class="breadcrumb-item active breadcrumb-item-custom">'{{ keyword }}' 的搜索结果</li>
+          {% endif %}
+      </ol>
+      <div class="container bgc">
+        <div id="myTabContent" class="tab-content">
+          <div class="tab-pane fade show active" id="home">
+            <ul class="list-group list-group-flush">
+            {% for post in posts.object_list %}
+              <li class="list-group-item">
+                <div class="row">
+                  <div class="col-md-4">
+                    <a href="{% url 'detail' post.short_title %}">
+                      <img class="w-100 img-height" src="{{ MEDIA_URL }}{{ post.image }}">
+                    </a>
+                    <a class="item-category" href="{% url 'cate_list' post.category.short_name %}">{{ post.category.name }}</a>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="d-flex align-items-start flex-column" style="height: 100%">
+                      <div class="pt-0">
+                        <h5><a class="item-title" href="{% url 'detail' post.short_title %}">{{ post.title }}</a></h5>
+                      </div>
+                      <div class="pt-0 meta-text">
+                        <i class="iconfont icon-riqi"></i>
+                        <span>{{ post.modified_time }}</span>
+                        <i class="iconfont icon-tag ml-3"></i>
+                        <span>
+                        {% for tag in post.tag.all %}
+                          <a href="{% url 'tag_list' tag.name %}">{{ tag.name }}</a>
+                        {% endfor %}
+                        </span>
+                        <i class="iconfont icon-read ml-3"></i>
+                        <span>{{ post.views }}</span>
+                        <i class="iconfont icon-comment ml-3"></i>
+                        <span><a href="{% url 'detail' post.short_title %}#comment-list">{{ post.comments_set.all.count }}</a></span>
+                      </div>
+                      <div class="pt-2 item-des">
+                          {{ post.excerpt | truncatechars:85 }}
+                      </div>
+                      <div class="mt-auto pb-0 w-100 text-right item-read">
+                        <a href="{% url 'detail' post.short_title %}" class="btn btn-success ml-3">阅读全文</a>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3 pt-3" style="border-top: 1px solid rgba(0, 0, 0, .125)">
+            <ul class="pagination pagination-sm">
+{#            <li class="page-item{% if not posts.has_previous %} disabled{% endif %}">#}
+{#              <a class="page-link" href="?{{ posts.previous_page_number.querystring }}">&laquo;</a>#}
+{#            </li>#}
+          {% if posts.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{{ posts.previous_page_number.querystring }}{% if not keyword.name %}&q={{ keyword }}{% endif %}">&laquo;</a>
+            </li>
+          {% endif %}
+          {% for page in posts.pages %}
+              {% if page %}
+                  {% ifequal page posts.number %}
+                    <li class="page-item active">
+                      <span class="page-link">{{ page }}</span>
+                    </li>
+                  {% else %}
+                    <li class="page-item">
+                      <a class="page-link" href="?{{ page.querystring }}{% if not keyword.name %}&q={{ keyword }}{% endif %}">{{ page }}</a>
+                    </li>
+                  {% endifequal %}
+              {% else %}
+
+              {% endif %}
+          {% endfor %}
+{#            <li class="page-item{% if not posts.has_next %} disabled{% endif %}">#}
+{#              <a class="page-link" href="?{{ posts.next_page_number.querystring }}">&raquo;</a>#}
+{#            </li>#}
+          {% if posts.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{{ posts.next_page_number.querystring }}{% if not keyword.name %}&q={{ keyword }}{% endif %}">&raquo;</a>
+            </li>
+          {% endif %}
+      </ul>
+
+        </div>
+
+  </div>
+  </div>
+{% endblock %}

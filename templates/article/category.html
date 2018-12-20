@@ -63,6 +63,7 @@
           </div>
         </div>
 
+        {% if posts.object_list %}
         <div class="d-flex justify-content-center mt-3 pt-3" style="border-top: 1px solid rgba(0, 0, 0, .125)">
             <ul class="pagination pagination-sm">
 {#            <li class="page-item{% if not posts.has_previous %} disabled{% endif %}">#}
@@ -99,6 +100,7 @@
       </ul>
 
         </div>
+        {% endif %}
 
   </div>
   </div>

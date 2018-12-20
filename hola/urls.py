@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
-from articles.views import IndexView, ArticleDetailView, ArticleCategoryView, ArticleTagView, ArticleSearchView
+from articles.views import IndexView, ArticleDetailView, ArticleListView, ArticleSearchView
 from comments.views import CommentsView
 
 urlpatterns = [
@@ -27,8 +27,8 @@ urlpatterns = [
     re_path(r'^favicon.ico$', RedirectView.as_view(url='static/favicon.ico')),
     re_path(r'mdeditor/', include('mdeditor.urls')),
     path('', IndexView.as_view(), name='index'),
-    path('category/<str:short_name>/', ArticleCategoryView.as_view(), name='cate_list'),
-    path('tag/<str:tag_name>/', ArticleTagView.as_view(), name='tag_list'),
+    path('category/<str:name>/', ArticleListView.as_view(), name='cate_list'),
+    path('tag/<str:name>/', ArticleListView.as_view(), name='tag_list'),
     path('<str:short_title>/', ArticleDetailView.as_view(), name='detail'),
     re_path(r'^comment', CommentsView.as_view(), name='comment'),
     re_path(r'^search', ArticleSearchView.as_view(), name='search')

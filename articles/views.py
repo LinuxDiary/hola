@@ -13,15 +13,17 @@ from comments.models import Comments
 
 
 class ArticleBaseView(View):
-    categories = Category.objects.filter(parent_cate=None).exclude(id=1)
-    hot_posts = Post.get_hot_posts()
-    all_tags = Tag.objects.all()
+    def __init__(self, **kwargs):
+        super(ArticleBaseView, self).__init__(**kwargs)
+        self.categories = Category.objects.filter(parent_cate=None).exclude(id=1)
+        self.hot_posts = Post.get_hot_posts()
+        self.all_tags = Tag.objects.all()
 
-    context = {
-        'categories': categories,
-        'hot_posts': hot_posts,
-        'all_tags': all_tags,
-    }
+        self.context = {
+            'categories': self.categories,
+            'hot_posts': self.hot_posts,
+            'all_tags': self.all_tags,
+        }
 
 
 class IndexView(ArticleBaseView):
@@ -69,7 +71,6 @@ class ArticleDetailView(ArticleBaseView):
         p = Paginator(comments, 10)
         comment_list = p.page(page)
         self.context.update(comment_list=comment_list)
-
         return render(request, 'article/page.html', self.context)
 
     def post(self, request, short_title):

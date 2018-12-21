@@ -70,14 +70,7 @@
 
         <div class="donate d-flex justify-content-center mt-4">
           <button id="likeBtn" class="btn btn-lg btn-outline-success rounded" ><i class="iconfont icon-dianzan mr-1"></i>点赞 <span id="likeNum">{{ post.likes }}</span></button>
-          <button
-                  class="btn btn-lg btn-outline-success rounded ml-1"
-                  data-placement="top"
-                  data-html="true"
-                  data-toggle="popover"
-                  data-trigger="hover"
-                  data-content='<img width="100%" src="{{ MEDIA_URL }}qrcode.png">'
-          >
+          <button class="btn btn-lg btn-outline-success rounded ml-1" data-toggle="popover">
               <i class="iconfont icon-dashang mr-1"></i>打赏
           </button>
         </div>
@@ -350,9 +343,12 @@ $("#emailInvalid").on("click", function () {
     $("#emailInvalidText").text('')
 });
 
-$(function(){
-    // Enables popover
-    $("[data-toggle=popover]").popover();
+// Enables popover
+$('[data-toggle="popover"]').popover({
+    placement: "top",
+    html: true,
+    trigger: "hover",
+    content: '<img width=100% src="{{ MEDIA_URL }}qrcode.png">'
 });
 </script>
 

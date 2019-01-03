@@ -1,7 +1,7 @@
 import re
 
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, reverse
+from django.shortcuts import get_object_or_404
 from django.views.generic import View
 
 from articles.models import Post
@@ -14,6 +14,7 @@ class CommentsView(View):
         pass
 
     def post(self, request):
+        """评论提交"""
         post = get_object_or_404(Post, id=request.POST.get('post_id', 0))
         try:
             reply_to = Comments.objects.get(id=int(request.POST.get('comment_id', 0)))

@@ -12,7 +12,19 @@ from .models import Post, Category, Tag
 from comments.models import Comments
 
 
+def results_pagination(request, queryset, per_page):
+    """返回分页的 queryset"""
+    try:
+        page = request.GET.get('page', 1)
+    except PageNotAnInteger:
+        page = 1
+
+    p = Paginator(queryset, per_page)
+    return p.page(page)
+
+
 class ArticleBaseView(View):
+    """公共的 context"""
     def __init__(self, **kwargs):
         super(ArticleBaseView, self).__init__(**kwargs)
         self.categories = Category.objects.filter(parent_cate=None).exclude(id=1)
@@ -27,26 +39,21 @@ class ArticleBaseView(View):
 
 
 class IndexView(ArticleBaseView):
+    """首页视图"""
     def get(self, request):
         self.context.update(
             current_page='index',
             banner_posts=Post.get_banner_posts()
         )
 
-        try:
-            page = request.GET.get('page', 1)
-        except PageNotAnInteger:
-            page = 1
-
-        all_posts = Post.objects.all().order_by('-create_time')
-        p = Paginator(all_posts, 3)
-        posts = p.page(page)
+        posts = results_pagination(request, Post.objects.all().order_by('-create_time'), 3)
         self.context.update(posts=posts)
 
         return render(request, 'article/index.html', self.context)
 
 
 class ArticleDetailView(ArticleBaseView):
+    """详情页视图"""
     def get(self, request, short_title):
         post = get_object_or_404(Post, short_title=short_title)
         self.context.update(post=post)
@@ -62,18 +69,12 @@ class ArticleDetailView(ArticleBaseView):
             ]
         )
 
-        try:
-            page = request.GET.get('page', 1)
-        except PageNotAnInteger:
-            page = 1
-
-        comments = Comments.objects.filter(post=post)
-        p = Paginator(comments, 10)
-        comment_list = p.page(page)
+        comment_list = results_pagination(request, Comments.objects.filter(post=post), 10)
         self.context.update(comment_list=comment_list)
         return render(request, 'article/page.html', self.context)
 
     def post(self, request, short_title):
+        """点赞功能"""
         post = get_object_or_404(Post, short_title=short_title)
         hash_id = hashlib.sha1(str(post.create_time).encode('utf-8')).hexdigest()
         res = {'status': 1, 'msg': ''}
@@ -94,6 +95,7 @@ class ArticleDetailView(ArticleBaseView):
 
 
 class ArticleListView(ArticleBaseView):
+    """文章列表"""
     def get(self, request, name):
         if Category.objects.filter(short_name=name):
             obj = get_object_or_404(Category, short_name=name)
@@ -104,19 +106,14 @@ class ArticleListView(ArticleBaseView):
         else:
             return Http404
 
-        try:
-            page = request.GET.get('page', 1)
-        except PageNotAnInteger:
-            page = 1
-
-        p = Paginator(posts_list, 3)
-        posts = p.page(page)
+        posts = results_pagination(request, posts_list, 3)
         self.context.update(keyword=obj, posts=posts)
 
         return render(request, 'article/category.html', self.context)
 
 
 class ArticleSearchView(ArticleBaseView):
+    """简单搜索"""
     def get(self, request):
         q = request.GET.get('q', '')
         results = Post.objects.filter(
@@ -125,13 +122,7 @@ class ArticleSearchView(ArticleBaseView):
             Q(content__icontains=q)
         )
 
-        try:
-            page = request.GET.get('page', 1)
-        except PageNotAnInteger:
-            page = 1
-
-        p = Paginator(results, 3)
-        posts = p.page(page)
+        posts = results_pagination(request, results, 3)
         self.context.update(keyword=q, posts=posts)
 
         return render(request, 'article/category.html', self.context)

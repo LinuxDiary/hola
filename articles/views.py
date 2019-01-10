@@ -104,7 +104,7 @@ class ArticleListView(ArticleBaseView):
             obj = get_object_or_404(Tag, name=name)
             posts_list = obj.get_tag_posts()
         else:
-            return Http404
+            raise Http404
 
         posts = results_pagination(request, posts_list, 3)
         self.context.update(keyword=obj, posts=posts)
